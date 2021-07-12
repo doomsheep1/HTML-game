@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Assignment 3</title>
+        <!-- document css -->
+        <style>
+            td {
+                padding:10px;
+            }
+
+            .bgBlue {
+                background-color:#CFE0FF;
+                font-size:90%;
+            }
+
+            .fontSizing {
+                font-size:150%;
+            }
+        </style>
+    </head>
+    <body>
+        <table border="1" width="50%">
+            <tr >
+                <th style="background-color:#F8C471; padding:10px; font-size:150%" colspan="3">Assignment 3: Game</th>
+            </tr>
+            <tr>
+                <td class="bgBlue"><b>Player name:</b></td>
+                <td class="bgBlue"><input id="playerName" type="text" size="22"></td>
+                <td class="fontSizing" style="background-color:#FDF4CE;" rowspan="3" align="center"><b>Time: <span id="stopWatch" style="color:red;">0 seconds</span>
+                        <br><br>Score: <span id="score" style="color:red;">0 points</span></b></td>
+            </tr>
+            <tr>
+                <td class="bgBlue"><b>The target option:</b></td>
+                <td class="bgBlue">
+                    <!-- select list populated by javascript -->
+                    <select id="optionSelect">
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="bgBlue"><b>The difficulty level:</b></td>
+                <td class="bgBlue">
+                    <input id="lowDiff" type="radio" name="diffLvl" value="low" checked>Low
+                    <input id="midDiff" type="radio" name="diffLvl" value="medium">Medium
+                    <input id="highDiff" type="radio" name="diffLvl" value="high">High
+                </td>
+            </tr>
+            <tr>
+                <td style="background-color:#8FFD7B;" colspan="3" align="center"><button type="button" onclick="startBtn()"><b>Start Game</b></button>
+                                                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                  <button type="button" onclick="stopBtn()"><b>Stop Game</b></button>
+                </td>
+            </tr>
+            <tr>
+                <td align="center" width="33%">
+                    <button class="fontSizing" style="color:blue;" id="option1" type="button" onclick="optionScore1()">Option 1</button>
+                </td>
+                <td align="center" width="33%">
+                    <button class="fontSizing" style="color:brown;" id="option2" type="button" onclick="optionScore2()">Option 2</button>
+                </td>
+                <td align="center" width="34%">
+                    <button class="fontSizing" style="color:#FF00F3;" id="option3" type="button" onclick="optionScore3()">Option 3</button>
+                </td>
+            </tr>
+            <tr>
+                <td style="background-color:#FFE7CB" colspan="3"><b>Player listing:</b><br>
+                    <!-- player list populated by javascript -->
+                    <ul id="playerList">
+                    </ul>
+                </td>
+            </tr>
+        </table>
+        <script>
+            // populate option list
+            var selectOptions = document.getElementById("optionSelect");
+            var optionArrAlpha = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
+                            "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+            var optionArrNum = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+            for (var i = 0;i < optionArrAlpha.length;i++)
+            {
+                var option = document.createElement("OPTION");
+                var node = document.createTextNode(optionArrAlpha[i]);
+                option.appendChild(node);
+                selectOptions.insertBefore(option, selectOptions.lastChild);
+            }
+
+            for (var i = 0;i < optionArrNum.length;i++)
+            {
+                var option = document.createElement("OPTION");
+                var node = document.createTextNode(optionArrNum[i]);
+                option.appendChild(node);
+                selectOptions.insertBefore(option, selectOptions.lastChild);
+            }
+
+            // store names
+            var nameArr = [];
+            var nameBoolean = false;
+            var nameIterator = 0;
+
+            // stop watch variables
+            var stopWatch = document.getElementById("stopWatch");
+            var counterTimer;
+            var counterSeconds = 0;
+
+            // store 10 random options including target option
+            var genArr = [];
+
+            // interval display and choosing option variables
+            var displayInt;
+            var option1 = document.getElementById("option1");
+            var option2 = document.getElementById("option2");
+            var option3 = document.getElementById("option3");
+            option1.disabled = true;
+            option2.disabled = true;
+            option3.disabled = true;
+
+            // point system variables
+            var points = 0;
+            var score = document.getElementById("score");
+
+            // for start button
+            function startBtn ()
+            {
+                counterSeconds = 0;
+                stopWatch.innerHTML = counterSeconds + " seconds";
+                points = 0;
+                score.innerHTML = points + " points";
+                genArr = [];
+                option1.innerHTML = "Option 1";
+                option2.innerHTML = "Option 2";
+                option3.innerHTML = "Option 3";
+                var playerName = document.getElementById("playerName").value;
+                if (/[^ ]/.test(playerName))
+                {
+                    validateGame(playerName);
+                    nameBoolean = false;
+                }
+                else
+                {
+                    alert("Please enter a name");
+                }
+            }
+
+            // if name is valid (not a duplicate), append inside name listing
+            function appendNameList (player)
+            {
+                var playerList = document.getElementById("playerList");
+                var listName = document.createElement("li");
+                var node = document.createTextNode(player);
+                listName.appendChild(node);
+                playerList.appendChild(listName);
+                nameArr[nameIterator] = player;
+                nameIterator++;
+            }
+
+            // check for valid name, if valid, runs all the game functions
+            function validateGame (player)
+            {
+                var name;
+                for (name of nameArr)
+                {
+                    if (name == player)
+                    {
+                        nameBoolean = true;
+                    }
+                }
+
+                if (nameBoolean)
+                {
+                    alert("Name is already in use");
+                    stopBtn();
+                }
+                else
+                {
+                    stopBtn();
+                    appendNameList(player);
+                    counterTimer = setInterval(showStopWatch, 1000);
+                    generateTenOptions();
+                    console.log(genArr);
+                    displayInterval();
+                }
+            }
+
+            // stopwatch function
+            function showStopWatch ()
+            {
+                counterSeconds += 1;
+                stopWatch.innerHTML = counterSeconds + " seconds";
+            }
+
+            // generate 10 random options with target option included
+            function generateTenOptions ()
+            {
+                genArr.push(selectOptions.value);
+                console.log(genArr[0]);
+                var rdmAlpha, rdmNum;
+                if (/[A-Z]/.test(selectOptions.value))
+                {
+                    while (genArr.length != 5)
+                    {
+                        rdmAlpha = Math.floor(Math.random() * 26);
+                        if(genArr.indexOf(optionArrAlpha[rdmAlpha]) === -1)
+                        {
+                            genArr.push(optionArrAlpha[rdmAlpha]);
+                        }
+                    }
+                    while (genArr.length != 10)
+                    {
+                        rdmNum = Math.floor(Math.random() * 10);
+                        if(genArr.indexOf(optionArrNum[rdmNum]) === -1)
+                        {
+                            genArr.push(optionArrNum[rdmNum]);
+                        }
+                    }
+                }
+                else
+                {
+                    while (genArr.length != 5)
+                    {
+                        rdmNum = Math.floor(Math.random() * 10);
+                        if(genArr.indexOf(optionArrNum[rdmNum]) === -1)
+                        {
+                            genArr.push(optionArrNum[rdmNum]);
+                        }
+                    }
+                    while (genArr.length != 10)
+                    {
+                        rdmAlpha = Math.floor(Math.random() * 26);
+                        if(genArr.indexOf(optionArrAlpha[rdmAlpha]) === -1)
+                        {
+                            genArr.push(optionArrAlpha[rdmAlpha]);
+                        }
+                    }
+                }
+            }
+
+            // display the 3 options per interval
+            function displayInterval ()
+            {
+                var low = document.getElementById("lowDiff");
+                var mid = document.getElementById("midDiff");
+                var high = document.getElementById("highDiff");
+                displayThreeOptions();
+                if(low.checked)
+                {
+                    displayInt = setInterval(displayThreeOptions, 3000);
+                }
+                else if (mid.checked)
+                {
+                    displayInt = setInterval(displayThreeOptions, 2000);
+                }
+                else if (high.checked)
+                {
+                    displayInt = setInterval(displayThreeOptions, 1000);
+                }
+            }
+
+            function displayThreeOptions ()
+            {
+                var rdmOpt1, rdmOpt2, rdmOpt3;
+                while (rdmOpt1 == rdmOpt2 || rdmOpt1 == rdmOpt3 || rdmOpt2 == rdmOpt3)
+                {
+                    rdmOpt1 = Math.floor(Math.random() * 10);
+                    rdmOpt2 = Math.floor(Math.random() * 10);
+                    rdmOpt3 = Math.floor(Math.random() * 10);
+                }
+                option1.innerHTML = genArr[rdmOpt1];
+                option2.innerHTML = genArr[rdmOpt2];
+                option3.innerHTML = genArr[rdmOpt3];
+                option1.disabled = false;
+                option2.disabled = false;
+                option3.disabled = false;
+            }
+
+            /* have to separate into 3 functions because if you put in 1 function,
+               clicking any option will increment score if target option is among the
+               3 displayed */
+            // for option 1 clicked
+            function optionScore1 ()
+            {
+               option1.disabled = true;
+               if(selectOptions.value == option1.innerHTML)
+               {
+                   points+=2;
+               }
+               else
+               {
+                   points-=1;
+               }
+               score.innerHTML = points + " points";
+            }
+
+            // for option 2 clicked
+            function optionScore2 ()
+            {
+               option2.disabled = true;
+               if(selectOptions.value == option2.innerHTML)
+               {
+                   points+=2;
+               }
+               else
+               {
+                   points-=1;
+               }
+               score.innerHTML = points + " points";
+            }
+
+            // for option 3 clicked
+            function optionScore3 ()
+            {
+               option3.disabled = true;
+               if(selectOptions.value == option3.innerHTML)
+               {
+                   points+=2;
+               }
+               else
+               {
+                   points-=1;
+               }
+               score.innerHTML = points + " points";
+            }
+
+            // stop game button
+            function stopBtn ()
+            {
+                clearInterval(counterTimer);
+                clearInterval(displayInt);
+                option1.disabled = true;
+                option2.disabled = true;
+                option3.disabled = true;
+            }
+        </script>
+    </body>
+</html>
